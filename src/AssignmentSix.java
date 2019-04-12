@@ -42,10 +42,11 @@ class Timer extends Thread
 {
    private int timer;
    private boolean isPaused;
-   private boolean isAlive = true;
+   private boolean isAlive;
    
    public Timer() {
       timer = 0;
+      isAlive = true;
    }
      
    @Override
