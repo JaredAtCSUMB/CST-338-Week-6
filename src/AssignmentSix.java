@@ -18,18 +18,21 @@ public class AssignmentSix
          
          // pause button
          if (command.equals("pause")) {
+            System.out.println("####### PAUSED ########");
             timer.pauseAction();
          }
          
          // play button
          if (command.equals("resume")) {
+            System.out.println("####### RESUMED ########");
             timer.resumeAction();
          }
-         
+
          command = keyboard.nextLine();
       }
       
       // when the game ends
+      System.out.println("Timer ended");
       timer.destroy();
    }
 
@@ -54,10 +57,12 @@ class Timer extends Thread
          } catch (InterruptedException e) {
             e.printStackTrace();
          }
-         System.out.println("Timer: " + timer);
-         increment();
+         
+         if (!isPaused) {
+            System.out.println("Timer: " + timer);
+            increment();  
+         }
       }
-      System.out.println("Timer ended");
    }
    
    private synchronized void increment() {
@@ -75,14 +80,10 @@ class Timer extends Thread
    }
    
    public void pauseAction() {
-      // TODO: remove this print
-      System.out.println("####### PAUSED ########");
       isPaused = true;
    }
 
    public synchronized void resumeAction() {
-      // TODO: remove this print
-      System.out.println("####### RESUMED ########");
       isPaused = false; 
       notifyAll();
    }
