@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -51,7 +52,7 @@ public class AssignmentSix
       // establish main frame in which program will run
       CardTable myCardTable 
          = new CardTable("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
-      myCardTable.setSize(800, 700);
+      myCardTable.setSize(1000, 950);
       myCardTable.setLocationRelativeTo(null);
       myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -95,9 +96,9 @@ public class AssignmentSix
       JLabel label = new JLabel();
       Timer timer = new Timer(label);
       JButton btn = new JButton("PLAY");
+      btn.setPreferredSize(new Dimension(140, 40));
       label.setFont(new Font("Serif", Font.PLAIN, 28));
       label.setForeground(Color.RED);
-      timerArea.setBorder(new TitledBorder(""));
       timerArea.add(label);
       timerArea.add(btn);
       myCardTable.add(timerArea);
