@@ -1,3 +1,5 @@
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +15,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+
+
 /**
  * This application... 
  * 
@@ -88,34 +92,36 @@ public class AssignmentSix
       Timer timer = new Timer();
       JPanel timerArea = new JPanel();
       Border timerBorder = new TitledBorder("");
-      JButton playBtn = new JButton("PLAY"); 
-      JButton pauseBtn = new JButton("PAUSE"); 
-      JLabel label = new JLabel();     
-      label.setText("00:00");
-      timerArea.setBorder(timerBorder); 
-      timerArea.add(playBtn);
-      timerArea.add(pauseBtn);
+      JLabel label = new JLabel();  
+      JButton btn = new JButton("PLAY"); 
+      label.setText("");
+      label.setFont(new Font("Serif", Font.PLAIN, 28));
+      label.setForeground(Color.RED);
+      timerArea.setBorder(timerBorder);
       timerArea.add(label);
+      timerArea.add(btn);
       myCardTable.add(timerArea);
       
-      playBtn.addActionListener(new ActionListener() {
+      btn.addActionListener(new ActionListener() {
          @Override
-         public void actionPerformed(ActionEvent arg0) {
-            timer.resumeAction();         
+         public void actionPerformed(ActionEvent e) { 
+            if (e.getActionCommand().equals("PLAY")) {
+               if (timer.getFormattedTime().equals("00:00")) {
+                  timer.start();
+               } else {
+                  timer.resumeAction(); 
+               }
+               btn.setText("PAUSE");
+            } else {
+               timer.pauseAction();
+               btn.setText("PLAY");
+            }
          }          
       });
-      
-      pauseBtn.addActionListener(new ActionListener() {
-         @Override
-         public void actionPerformed(ActionEvent arg0) {
-            timer.pauseAction();       
-         }          
-      });
-      
+
       // show everything to the user
       myCardTable.setVisible(true);
 
-      timer.start();
       // TODO: Maybe stop timer when there are no cards left?
       while (true) {
          label.setText(timer.getFormattedTime());
