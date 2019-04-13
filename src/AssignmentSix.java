@@ -88,16 +88,16 @@ public class AssignmentSix
       displayHandArea(myCardTable, "Your Hand", humanLabels, pnlYourHandArea);
       
       
-      // TIMER LOGIC  
-      Timer timer = new Timer();
+      /************************************************************************
+       * TIMER CODE  
+       */
       JPanel timerArea = new JPanel();
-      Border timerBorder = new TitledBorder("");
-      JLabel label = new JLabel();  
-      JButton btn = new JButton("PLAY"); 
-      label.setText("");
+      JLabel label = new JLabel();
+      Timer timer = new Timer(label);
+      JButton btn = new JButton("PLAY");
       label.setFont(new Font("Serif", Font.PLAIN, 28));
       label.setForeground(Color.RED);
-      timerArea.setBorder(timerBorder);
+      timerArea.setBorder(new TitledBorder(""));
       timerArea.add(label);
       timerArea.add(btn);
       myCardTable.add(timerArea);
@@ -117,15 +117,13 @@ public class AssignmentSix
                btn.setText("PLAY");
             }
          }          
-      });
+      });   
+      /*
+       * END TIMER CODE
+       ***********************************************************************/
 
       // show everything to the user
       myCardTable.setVisible(true);
-
-      // TODO: Maybe stop timer when there are no cards left?
-      while (true) {
-         label.setText(timer.getFormattedTime());
-      }
    }
    
    /**
@@ -1389,10 +1387,13 @@ class Timer extends Thread
    private boolean isPaused;
    private boolean isAlive;
    String formattedTime;
+   JLabel label;
    
-   public Timer() {
+   public Timer(JLabel label) {
       timer = 0;
       isAlive = true;
+      this.label = label;
+      this.label.setText(getFormattedTime());
    }
      
    @Override
@@ -1405,14 +1406,15 @@ class Timer extends Thread
             e.printStackTrace();
          }
          
-         increment();  
+         if (!isPaused) {
+            label.setText(getFormattedTime());
+            increment();
+         }
       }
    }
    
    private synchronized void increment() {
-      if (!isPaused) {
-         timer++;
-      }
+      timer++;
    }
    
    private synchronized void doNothing() throws InterruptedException {
