@@ -19,8 +19,37 @@ import javax.swing.border.TitledBorder;
 
 
 /**
- * This application... 
+ * Using Model-View-Controller Design Pattern.
  * 
+ * HighCardModel:
+ *  Heart of the application.  An object to represent cards.  Model objects notifies the view (Swing objects when
+ *  screen needs to be updated)
+ *   
+ * HighCardView:
+ *  Output part. Swing objects.
+ * 
+ * HighCardController
+ *  Input part; relays commands from the user to the Model.  HighCardListener class.
+ *  
+ *  
+ * New timer on the side of the screen. ( start and stop buttons to control the timer.)
+ * It will be on a timer to update every second, but in order for you to still play the game, 
+ * you will need to use multithreading.
+ * 
+ * There is new game:
+ * 
+ *  Take turns with the computer putting a card on one of two stacks in the middle of the table. 
+ *  
+ *  You can put on a card that is one value higher or one value lower.  (6 on a 5 OR 4 on a 5, Q on a J OR T on a J, etc.) 
+ *  After you play, you get another card from the deck in your hand.
+ *  
+ *  Keep going until the single deck is out of cards.
+ *  
+ *  If you cannot play, click a button that says "I cannot play".  The the computer gets a second turn.  Same for you, if the computer cannot play.  
+ *  If neither of you can play, then the deck puts a new card on each stack in the middle of the table.
+ *  Who ever has the least number of "cannot plays", is the winner.  Declare this at the end, when the deck is exhausted.
+ *  
+ *  
  * @author Team 6: Jared Cheney, Andrew Meraz, Chul Kim and Agustin Garcia
  *
  */
@@ -35,63 +64,18 @@ public class AssignmentSix
    
    public static void main(String[] args)
    {
-      int numPacksPerDeck = 1;
-      int numJokersPerPack = 0;
-      int numUnusedCardsPerPack = 0;
-      Card[] unusedCardsPerPack = null;
+      //High Card Model
+      HighCardModel highCardModel = new HighCardModel(1, 0, 0, null, NUM_PLAYERS, NUM_CARDS_PER_HAND);
       
-      CardGameFramework highCardGame = new CardGameFramework( 
-            numPacksPerDeck, numJokersPerPack,  
-            numUnusedCardsPerPack, unusedCardsPerPack, 
-            NUM_PLAYERS, NUM_CARDS_PER_HAND);
+      //High Card View
+      HighCardView highCardView = new HighCardView(highCardModel.getHand(0), highCardModel.getHand(1));
       
-      //We have two hands from the highCardGame object.
-      //calling deal to deal all of the cards per each hand.  (7 cards per hand)
-      highCardGame.deal();
-      
-      // establish main frame in which program will run
-      CardTable myCardTable 
-         = new CardTable("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
-      myCardTable.setSize(1000, 950);
-      myCardTable.setLocationRelativeTo(null);
-      myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-      // set up layout which will control placement of buttons, etc.
-      GridLayout layout = new GridLayout(4, 1);
-      myCardTable.setLayout(layout);
-
-      Hand computerHand = highCardGame.getHand(0);
-      Hand yourHand = highCardGame.getHand(1);
-      
-      //HighCard Game
-      
-      // Create a Playing Area Hand
-      JPanel pnlPlayArea = new JPanel();
-      Border border = new TitledBorder("Playing Area");
-      pnlPlayArea.setBorder(border);
-      
-      GridLayout gridLayout = new GridLayout(2, 2);
-      pnlPlayArea.setLayout(gridLayout);
-
-      JPanel pnlComputerArea = new JPanel();
-      JPanel pnlYourHandArea = new JPanel();
-      
-      createHandJLabels(myCardTable, computerHand, computerHand, computerLabels, true, pnlPlayArea, pnlComputerArea,
-            pnlYourHandArea, pnlPlayArea);
-      createHandJLabels(myCardTable, yourHand, computerHand, humanLabels, false, pnlPlayArea, pnlComputerArea,
-            pnlYourHandArea, pnlPlayArea);
-
-      displayHandArea(myCardTable, "Computer Hand", computerLabels, pnlComputerArea);
-
-      displayPlayingArea(pnlPlayArea, pnlPlayArea, myCardTable, null, null);
-
-      // My Hand
-      displayHandArea(myCardTable, "Your Hand", humanLabels, pnlYourHandArea);
-      
-      
-      /************************************************************************
-       * TIMER CODE  
-       */
+      //Timer
+      addTimer(highCardView);
+   }
+   
+   
+   private static void addTimer(HighCardView highCardView) {
       JPanel timerArea = new JPanel();
       JLabel label = new JLabel();
       Timer timer = new Timer(label);
@@ -101,7 +85,7 @@ public class AssignmentSix
       label.setForeground(Color.RED);
       timerArea.add(label);
       timerArea.add(btn);
-      myCardTable.add(timerArea);
+      highCardView.getMyCardTable().add(timerArea);
       
       btn.addActionListener(new ActionListener() {
          @Override
@@ -118,109 +102,188 @@ public class AssignmentSix
                btn.setText("PLAY");
             }
          }          
-      });   
-      /*
-       * END TIMER CODE
-       ***********************************************************************/
-
-      // show everything to the user
-      myCardTable.setVisible(true);
+      });
+      highCardView.getMyCardTable().setVisible(true);
    }
-   
-   /**
-    * 
-    * @param myCardTable
-    * @param hand
-    * @param JLabels
-    * @param isBackCard
-    */
-   private static void createHandJLabels(CardTable myCardTable, Hand hand, Hand computerHand, JLabel[] JLabels,
-         boolean isBackCard, JPanel pnlPlayArea, JPanel pnlComputerArea, JPanel pnlYourHandArea, JPanel pnlPlayAreaPosition) {
-      for (int i = 0; i < NUM_CARDS_PER_HAND; i++) {
-         // Create an icon and store in an array later use.
-         Icon icon = null;
-         HighCardListener highCardListener = null;
-         Card dealCard = hand.inspectCard(i);
-         if (isBackCard) {
-            icon = GUICard.getBackCardIcon();
-         } else {
-            icon = GUICard.getIcon(dealCard);
-            highCardListener = new HighCardListener(myCardTable, dealCard, hand, computerHand, pnlPlayArea,
-                  pnlComputerArea, pnlYourHandArea, pnlPlayAreaPosition);
-         }
-         JLabel jlabel = new JLabel(icon);
-         if (highCardListener != null) {
-            jlabel.addMouseListener(highCardListener);
-         }
-         JLabels[i] = jlabel;
-      }
-   }
-
-   /**
-    * Displays your hand.
-    * @param myCardTable
-    * @param yourHand
-    */
-   private static void displayHandArea(CardTable myCardTable, String areaTitle, JLabel[] JLables, JPanel pnlHand) {
-      // My Hand
-      Border border = new TitledBorder(areaTitle);
-      pnlHand.setBorder(border);
-      for (int i = 0; i < NUM_CARDS_PER_HAND; i ++) {
-         pnlHand.add(JLables[i]);
-      }
-      GridLayout layout = new GridLayout(1, NUM_CARDS_PER_HAND);
-      pnlHand.setLayout(layout);
-      myCardTable.add(pnlHand);
-   }
-   
 
    /**
     * 
-    * @param myCardTable
-    * @param computerCard
-    * @param yourCard
-    * @return
+    * @author charlesk
+    *
     */
-   private static void displayPlayingArea(JPanel pnlPlayArea, JPanel pnlPlayAreaPosition, CardTable myCardTable, Card computerCard, Card yourCard ) {
+   private static class HighCardModel {
 
-      //Play Computer Card
-      JLabel computerCardJLabel = null;
-      if (computerCard != null) {
-         Icon computerCardIcon = GUICard.getIcon(computerCard);
-         computerCardJLabel = new JLabel(computerCardIcon);
-         playedCardLabels[0] = computerCardJLabel;
-      }
-      JLabel computerLabel = new JLabel( "Computer", JLabel.CENTER );
-      playLabelText[0] = computerLabel;
+      private CardGameFramework highCardGame;
 
-      //Play Your Card
-      JLabel yourCardJLabel = null;
-      if (yourCard != null) {
-         Icon yourCardIcon = GUICard.getIcon(yourCard);
-         yourCardJLabel = new JLabel(yourCardIcon);
-         playedCardLabels[1] = yourCardJLabel;
+      public HighCardModel(int numPacksPerDeck, int numJokersPerPack, int numUnusedCardsPerPack,
+            Card[] unusedCardsPerPack, int numPlayers, int numCardsPerHand) {
+         
+         this.highCardGame = new CardGameFramework(numPacksPerDeck, numJokersPerPack, numUnusedCardsPerPack,
+               unusedCardsPerPack, numPlayers, numCardsPerHand);
+         
+         //deal the cards to hands
+         highCardGame.deal();
       }
-      JLabel yourHandLabel = new JLabel( "You", JLabel.CENTER );
-      playLabelText[1] = yourHandLabel;
 
-      //Add labels to the play area
-      
-      if (computerCardJLabel != null) {
-         pnlPlayArea.add(computerCardJLabel);
-      }
-      if (yourCardJLabel != null) {
-         pnlPlayArea.add(yourCardJLabel);
+      public Hand getHand(int handIndex) {
+         return this.highCardGame.getHand(handIndex);
       }
       
-      pnlPlayAreaPosition.add(computerLabel);
-      pnlPlayAreaPosition.add(yourHandLabel);
-
-      myCardTable.add(pnlPlayArea);
-      myCardTable.add(pnlPlayAreaPosition);
    }
    
+   
+  /**
+    * 
+    * View part of Model-View-Controller Design pattern
+    * 
+    * @author charlesk
+    *
+    */
+   private static class HighCardView {
 
-   private static class CardTable extends JFrame
+      private CardTableView myCardTable;
+      private JPanel pnlPlayArea;
+      private JPanel pnlComputerArea;
+      private JPanel pnlYourHandArea;
+
+      /**
+      * 
+      */
+      public HighCardView(final Hand computerHand, final Hand yourHand) {
+         // establish main frame in which program will run
+         this.myCardTable = new CardTableView("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
+         myCardTable.setSize(1000, 950);
+         myCardTable.setLocationRelativeTo(null);
+         myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+         // set up layout which will control placement of buttons, etc.
+         GridLayout layout = new GridLayout(4, 1);
+         myCardTable.setLayout(layout);
+
+         // Create a Playing Area Hand
+         this.pnlPlayArea = new JPanel();
+         Border border = new TitledBorder("Playing Area");
+         pnlPlayArea.setBorder(border);
+
+         GridLayout gridLayout = new GridLayout(2, 2);
+         pnlPlayArea.setLayout(gridLayout);
+
+         this.pnlComputerArea = new JPanel();
+         this.pnlYourHandArea = new JPanel();
+
+         createHandJLabels(myCardTable, computerHand, computerHand, computerLabels, true, pnlPlayArea, pnlComputerArea,
+               pnlYourHandArea, pnlPlayArea);
+
+         createHandJLabels(myCardTable, yourHand, computerHand, humanLabels, false, pnlPlayArea, pnlComputerArea,
+               pnlYourHandArea, pnlPlayArea);
+
+         displayHandArea(myCardTable, "Computer Hand", computerLabels, pnlComputerArea);
+
+         displayPlayingArea(pnlPlayArea, pnlPlayArea, myCardTable, null, null);
+
+         displayHandArea(myCardTable, "Your Hand", humanLabels, pnlYourHandArea);
+         
+         myCardTable.setVisible(true);
+      }
+      
+      public CardTableView getMyCardTable() {
+         return myCardTable;
+      }
+
+      /**
+       * Displays your hand.
+       * @param myCardTable
+       * @param yourHand
+       */
+      private static void displayHandArea(CardTableView myCardTable, String areaTitle, JLabel[] JLables, JPanel pnlHand) {
+         // My Hand
+         Border border = new TitledBorder(areaTitle);
+         pnlHand.setBorder(border);
+         for (int i = 0; i < NUM_CARDS_PER_HAND; i ++) {
+            pnlHand.add(JLables[i]);
+         }
+         GridLayout layout = new GridLayout(1, NUM_CARDS_PER_HAND);
+         pnlHand.setLayout(layout);
+         myCardTable.add(pnlHand);
+      }
+      
+      /**
+       * 
+       * @param myCardTable
+       * @param computerCard
+       * @param yourCard
+       * @return
+       */
+      private static void displayPlayingArea(JPanel pnlPlayArea, JPanel pnlPlayAreaPosition, CardTableView myCardTable, Card computerCard, Card yourCard ) {
+
+         //Play Computer Card
+         JLabel computerCardJLabel = null;
+         if (computerCard != null) {
+            Icon computerCardIcon = GUICardIconsView.getIcon(computerCard);
+            computerCardJLabel = new JLabel(computerCardIcon);
+            playedCardLabels[0] = computerCardJLabel;
+         }
+         JLabel computerLabel = new JLabel( "Computer", JLabel.CENTER );
+         playLabelText[0] = computerLabel;
+
+         //Play Your Card
+         JLabel yourCardJLabel = null;
+         if (yourCard != null) {
+            Icon yourCardIcon = GUICardIconsView.getIcon(yourCard);
+            yourCardJLabel = new JLabel(yourCardIcon);
+            playedCardLabels[1] = yourCardJLabel;
+         }
+         JLabel yourHandLabel = new JLabel( "You", JLabel.CENTER );
+         playLabelText[1] = yourHandLabel;
+
+         //Add labels to the play area
+         
+         if (computerCardJLabel != null) {
+            pnlPlayArea.add(computerCardJLabel);
+         }
+         if (yourCardJLabel != null) {
+            pnlPlayArea.add(yourCardJLabel);
+         }
+         
+         pnlPlayAreaPosition.add(computerLabel);
+         pnlPlayAreaPosition.add(yourHandLabel);
+
+         myCardTable.add(pnlPlayArea);
+         myCardTable.add(pnlPlayAreaPosition);
+      }
+      
+      /**
+       * 
+       * @param myCardTable
+       * @param hand
+       * @param JLabels
+       * @param isBackCard
+       */
+      private static void createHandJLabels(CardTableView myCardTable, Hand hand, Hand computerHand, JLabel[] JLabels,
+            boolean isBackCard, JPanel pnlPlayArea, JPanel pnlComputerArea, JPanel pnlYourHandArea, JPanel pnlPlayAreaPosition) {
+         for (int i = 0; i < NUM_CARDS_PER_HAND; i++) {
+            // Create an icon and store in an array later use.
+            Icon icon = null;
+            HighCardListenerController highCardListener = null;
+            Card dealCard = hand.inspectCard(i);
+            if (isBackCard) {
+               icon = GUICardIconsView.getBackCardIcon();
+            } else {
+               icon = GUICardIconsView.getIcon(dealCard);
+               highCardListener = new HighCardListenerController(myCardTable, dealCard, hand, computerHand, pnlPlayArea,
+                     pnlComputerArea, pnlYourHandArea, pnlPlayAreaPosition);
+            }
+            JLabel jlabel = new JLabel(icon);
+            if (highCardListener != null) {
+               jlabel.addMouseListener(highCardListener);
+            }
+            JLabels[i] = jlabel;
+         }
+      }
+      
+   }
+
+   private static class CardTableView extends JFrame
    {
       static int MAX_CARDS_PER_HAND = 56;
       static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games    
@@ -228,7 +291,7 @@ public class AssignmentSix
       private int numPlayers;
       public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
       
-      public CardTable(String title, int numCardsPerHand, int numPlayers)
+      public CardTableView(String title, int numCardsPerHand, int numPlayers)
       {
          if (numCardsPerHand > MAX_CARDS_PER_HAND) {
             throw new IllegalArgumentException("Max number of cards per hand:" + MAX_CARDS_PER_HAND);
@@ -252,12 +315,13 @@ public class AssignmentSix
    }
    
    /**
+    * Controller part of Model-View-Controller Design Pattern
     * 
     * @author charlesk
     *
     */
-   private static class HighCardListener implements MouseListener {
-      private CardTable myCardTable;
+   private static class HighCardListenerController implements MouseListener {
+      private CardTableView myCardTable;
       private Card card;
       private Hand hand;
       private Hand computerHand;
@@ -266,7 +330,7 @@ public class AssignmentSix
       private JPanel pnlYourHandArea;
       private JPanel pnlPlayAreaPosition;
       
-      HighCardListener(CardTable myCardTable, Card card, Hand hand, Hand computerHand, JPanel pnlPlayArea,
+      HighCardListenerController(CardTableView myCardTable, Card card, Hand hand, Hand computerHand, JPanel pnlPlayArea,
             JPanel pnlComputerArea, JPanel pnlYourHandArea, JPanel pnlPlayAreaPosition) {
          this.myCardTable = myCardTable;
          this.card = card;
@@ -285,7 +349,7 @@ public class AssignmentSix
 
           // Play the card to the playing are when clicked.
           //1) Add the card to the playing area
-          Icon icon = GUICard.getIcon(card);
+          Icon icon = GUICardIconsView.getIcon(card);
           JLabel iconYourHandJLabel = new JLabel(icon);
           playedCardLabels[0] = iconYourHandJLabel;
           
@@ -306,7 +370,7 @@ public class AssignmentSix
           int cCard = r.nextInt((computerHandCards - 0) + 1);
 
           Card computerCard = computerHand.playCard(cCard);
-          icon = GUICard.getIcon(computerCard);
+          icon = GUICardIconsView.getIcon(computerCard);
           JLabel iconComputerJLabel = new JLabel(icon);
           playedCardLabels[1] = iconComputerJLabel;
           pnlComputerArea.remove(cCard);
@@ -381,7 +445,7 @@ public class AssignmentSix
     * @author charlesk
     *
     */
-   private static class GUICard
+   private static class GUICardIconsView
    {
       public static final String IMAGE_FOLDER_NAME = "images";
       public static final String BACK_IMAGE_NAME = "BK.gif";
