@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
+import AssignmentSix.GUICardIconsView;
 
 /**
  * Using Model-View-Controller Design Pattern.
@@ -54,28 +55,24 @@ import javax.swing.border.TitledBorder;
  *
  */
 public class AssignmentSix
-{
-   static int NUM_CARDS_PER_HAND = 7;
-   static int  NUM_PLAYERS = 2;
-   static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
-   static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
-   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
-   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS];
-   
+{   
    public static void main(String[] args)
    {
       //High Card Model
-      HighCardModel highCardModel = new HighCardModel(1, 0, 0, null, NUM_PLAYERS, NUM_CARDS_PER_HAND);
+      BuildModel buildModel = new BuildModel();
       
       //High Card View
-      HighCardView highCardView = new HighCardView(highCardModel.getHand(0), highCardModel.getHand(1));
+      BuildView buildView = new BuildView();
+      
+      BuildController buildController = new BuildController(buildView, buildModel);
+      
+      buildView.setVisible(true);
       
       //Timer
-      addTimer(highCardView);
-   }
+      // addTimer(buildView);
+   }  
    
-   
-   private static void addTimer(HighCardView highCardView) {
+  /* private static void addTimer(BuildView buildView) {
       JPanel timerArea = new JPanel();
       JLabel label = new JLabel();
       Timer timer = new Timer(label);
@@ -85,7 +82,7 @@ public class AssignmentSix
       label.setForeground(Color.RED);
       timerArea.add(label);
       timerArea.add(btn);
-      highCardView.getMyCardTable().add(timerArea);
+      buildView.getMyCardTable().add(timerArea);
       
       btn.addActionListener(new ActionListener() {
          @Override
@@ -103,340 +100,655 @@ public class AssignmentSix
             }
          }          
       });
-      highCardView.getMyCardTable().setVisible(true);
-   }
+      buildView.getMyCardTable().setVisible(true);
+   } */
+}
+class BuildModel
+{
+	private CardGameFramework buildModel;
+	static int NUM_CARDS_PER_HAND = 7;
+	static int NUM_PLAYERS = 2;
+	static int NUM_PACKS_PER_DECK = 1;
+	static int NUM_JOKERS_PER_PACK = 0;
+	static int NUM_UNUSED_CARDS_PER_PACK = 0;
+	static Card[] UNUSED_CARDS_PER_PACK = null;
+	
+	
+	public BuildModel()
+	{
+		this.buildModel = new CardGameFramework(NUM_PACKS_PER_DECK, NUM_JOKERS_PER_PACK, NUM_UNUSED_CARDS_PER_PACK,
+				UNUSED_CARDS_PER_PACK, NUM_PLAYERS, NUM_CARDS_PER_HAND);
+	}
+	
+	public Hand getHand(int handIndex) {
+        return this.buildModel.getHand(handIndex);
+     }
+	
+	public Card getCardFromDeck() {
+		return this.buildModel.getCardFromDeck();
+	}
+	
+	public int getNumCardsRemainingInDeck()
+	{
+		return this.buildModel.getNumCardsRemainingInDeck();
+	}
+	
+	public void sortHands()
+	{
+		this.buildModel.sortHands();
+	}
+	
+	public Card playCard(int playerIndex, int cardIndex)
+	{
+		return this.buildModel.playCard(playerIndex, cardIndex);
+	}
+	
+	public boolean takeCard(int playerIndex)
+	{
+		return this.buildModel.takeCard(playerIndex);
+	}
+	
+	private static class GUICardIconsView
+	   {
+	      public static final String IMAGE_FOLDER_NAME = "images";
+	      public static final String BACK_IMAGE_NAME = "BK.gif";
 
-   /**
-    * 
-    * @author charlesk
-    *
-    */
-   private static class HighCardModel {
+	      public static final int MAX_ROW = 14;
+	      public static final int MAX_COLUMN = 4;
+	      
+	      // 14 = A thru K + joker
+	      //The 52 + 4 jokers Icons will be read and stored into the iconCards[][] array.
+	      private static Icon[][] iconCards = new ImageIcon[MAX_ROW][MAX_COLUMN];
+	      
+	      //The card-back image in the iconBack member
+	      private static Icon iconBack;
+	      
+	      static boolean iconsLoaded = false;
+	      
+	      //
+	      static {
+	         loadCardIcons();
+	      }
+	      
+	      /**
+	       *  Icons are loaded following rules
+	       *  C = Clover, D = Diamond, H = Hearts S = Spades
+	       *  
+	       *  [A,C],[A,D],[A,H],[A,S]
+	       *  [2,C],[2,D],[2,H],[2,S]
+	       *  [3,C],[3,D],[3,H],[3,S]
+	       *  ...
+	       *  [J,C],[J,D],[J,H],[J,S]
+	       *  ...
+	       *  [K,C],[K,D],[K,H],[K,S]
+	       */
+	      public static void loadCardIcons()
+	      {
+	         if (iconsLoaded ) {
+	            return;
+	         }
+	         //Load iconBack image
+	         iconBack= new ImageIcon(IMAGE_FOLDER_NAME + "/" +  BACK_IMAGE_NAME);
+	         
+	         //Load other icons(cards)
+	         for (int r = 0; r < MAX_ROW; r ++) {
+	            for (int c = 0; c < MAX_COLUMN; c ++) {
+	               iconCards[r][c] =  new ImageIcon(IMAGE_FOLDER_NAME + "/" +  getImageFileName(r, c));
+	            }
+	         }
+	 
+	         iconsLoaded = true;
+	      }
+	      
+	      private static String getImageFileName(int row, int column) {
+	         StringBuilder ret = new StringBuilder();
+	         switch(row) {
+	         case 0:
+	            ret.append('A');
+	            break;
+	         case 1:
+	            ret.append('2');
+	            break;
+	         case 2:
+	            ret.append('3');
+	            break;
+	         case 3:
+	            ret.append('4');
+	            break;
+	         case 4:
+	            ret.append('5');
+	            break;
+	         case 5:
+	            ret.append('6');
+	            break;
+	         case 6:
+	            ret.append('7');
+	            break;
+	         case 7:
+	            ret.append('8');
+	            break;
+	         case 8:
+	            ret.append('9');
+	            break;
+	         case 9:
+	            ret.append('T');
+	            break;
+	         case 10:
+	            ret.append('J');
+	            break;
+	         case 11:
+	            ret.append('Q');
+	            break;
+	         case 12:
+	            ret.append('K');
+	            break;
+	         case 13:
+	            ret.append('X');
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of row");
+	         }
+	         
+	         switch(column) {
+	         case 0:
+	            ret.append('S');
+	            break;
+	         case 1:
+	            ret.append('H');
+	            break;
+	         case 2:
+	            ret.append('D');
+	            break;
+	         case 3:
+	            ret.append('C');
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of column");
+	         }
+	         
+	         ret.append(".gif");
+	         return ret.toString();
+	      }
+	      /**
+	       * 
+	       * @param card
+	       * @return the Icon for that card
+	       */
+	      public static Icon getIcon(Card card)
+	      {
+	         return iconCards[valueAsInt(card)][suitAsInt(card)];
+	      }
+	      
+	      /**
+	       * 
+	       * @param card
+	       * @return
+	       */
+	      private static int valueAsInt(Card card) {
+	         int ret = 0;
+	         char valueChar = card.getValue();
+	         switch(valueChar) {
+	         case 'A':
+	            ret = 0;
+	            break;
+	         case '2':
+	            ret = 1;
+	            break;
+	         case '3':
+	            ret = 2;
+	            break;
+	         case '4':
+	            ret = 3;
+	            break;
+	         case '5':
+	            ret = 4;
+	            break;
+	         case '6':
+	            ret = 5;
+	            break;
+	         case '7':
+	            ret = 6;
+	            break;
+	         case '8':
+	            ret = 7;
+	            break;
+	         case '9':
+	            ret = 8;
+	            break;
+	         case 'T':
+	            ret = 9;
+	            break;
+	         case 'J':
+	            ret = 10;
+	            break;
+	         case 'Q':
+	            ret = 11;
+	            break;
+	         case 'K':
+	            ret = 12;
+	            break;
+	         case 'X':
+	            ret = 13;
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of card value.");
+	      }
+	         return ret;
+	      }
+	      
+	      /**
+	       * 
+	       * @param card
+	       * @return
+	       */
+	      private static int suitAsInt(Card card) {
+	         int ret = 0;
+	         Card.Suit suit = card.getSuit();
+	         switch(suit) {
+	         case spades:
+	            ret = 0;
+	            break;
+	         case hearts:
+	            ret = 1;
+	            break;
+	         case diamonds:
+	            ret = 2;
+	            break;
+	         case clubs:
+	            ret = 3;
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of card suit.");
+	         }
+	         return ret;
+	      }
+	      
+	      /**
+	       * 
+	       * @return back card icon
+	       */
+	      public static Icon getBackCardIcon()
+	      {
+	         return iconBack;
+	      }
+	   }
+}
 
-      private CardGameFramework highCardGame;
+class BuildView extends JFrame
+{
+	//private CardTableView myCardTable;
+    private JPanel pnlPlayArea;
+    private JPanel pnlComputerArea;
+    private JPanel pnlYourHandArea;
+    static JLabel[] computerLabels = new JLabel[BuildModel.NUM_CARDS_PER_HAND];
+    static JLabel[] humanLabels = new JLabel[BuildModel.NUM_CARDS_PER_HAND];  
+    static JLabel[] playedCardLabels  = new JLabel[BuildModel.NUM_PLAYERS]; 
+	private JButton skipButton = new JButton("I cannot play");
+	private Card leftCard = null;
+	private Card rightCard = null;
 
-      public HighCardModel(int numPacksPerDeck, int numJokersPerPack, int numUnusedCardsPerPack,
-            Card[] unusedCardsPerPack, int numPlayers, int numCardsPerHand) {
-         
-         this.highCardGame = new CardGameFramework(numPacksPerDeck, numJokersPerPack, numUnusedCardsPerPack,
-               unusedCardsPerPack, numPlayers, numCardsPerHand);
-         
-         //deal the cards to hands
-         highCardGame.deal();
-      }
+    
+	public BuildView()
+	{
+		JPanel myCardTable = new JPanel();
+		this.setTitle("BUILD");
+		this.setSize(1000, 950);
+		this.setLocationRelativeTo(null);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		GridLayout layout = new GridLayout(4, 1);
+		this.setLayout(layout);
+		
+		// Create a Playing Area Hand
+        this.pnlPlayArea = new JPanel();
+        Border border = new TitledBorder("Playing Area");
+        pnlPlayArea.setBorder(border);
 
-      public Hand getHand(int handIndex) {
-         return this.highCardGame.getHand(handIndex);
-      }
-      
-   }
-   
-   
-  /**
-    * 
-    * View part of Model-View-Controller Design pattern
-    * 
-    * @author charlesk
-    *
-    */
-   private static class HighCardView {
+        GridLayout gridLayout = new GridLayout(1, 1);
+        pnlPlayArea.setLayout(gridLayout);
 
-      private CardTableView myCardTable;
-      private JPanel pnlPlayArea;
-      private JPanel pnlComputerArea;
-      private JPanel pnlYourHandArea;
-
-      /**
-      * 
-      */
-      public HighCardView(final Hand computerHand, final Hand yourHand) {
-         // establish main frame in which program will run
-         this.myCardTable = new CardTableView("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
-         myCardTable.setSize(1000, 950);
-         myCardTable.setLocationRelativeTo(null);
-         myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-         // set up layout which will control placement of buttons, etc.
-         GridLayout layout = new GridLayout(4, 1);
-         myCardTable.setLayout(layout);
-
-         // Create a Playing Area Hand
-         this.pnlPlayArea = new JPanel();
-         Border border = new TitledBorder("Playing Area");
-         pnlPlayArea.setBorder(border);
-
-         GridLayout gridLayout = new GridLayout(2, 2);
-         pnlPlayArea.setLayout(gridLayout);
-
-         this.pnlComputerArea = new JPanel();
-         this.pnlYourHandArea = new JPanel();
-
-         createHandJLabels(myCardTable, computerHand, computerHand, computerLabels, true, pnlPlayArea, pnlComputerArea,
-               pnlYourHandArea, pnlPlayArea);
-
-         createHandJLabels(myCardTable, yourHand, computerHand, humanLabels, false, pnlPlayArea, pnlComputerArea,
-               pnlYourHandArea, pnlPlayArea);
-
-         displayHandArea(myCardTable, "Computer Hand", computerLabels, pnlComputerArea);
-
-         displayPlayingArea(pnlPlayArea, pnlPlayArea, myCardTable, null, null);
-
-         displayHandArea(myCardTable, "Your Hand", humanLabels, pnlYourHandArea);
-         
-         myCardTable.setVisible(true);
-      }
-      
-      public CardTableView getMyCardTable() {
-         return myCardTable;
-      }
-
-      /**
-       * Displays your hand.
-       * @param myCardTable
-       * @param yourHand
-       */
-      private static void displayHandArea(CardTableView myCardTable, String areaTitle, JLabel[] JLables, JPanel pnlHand) {
-         // My Hand
-         Border border = new TitledBorder(areaTitle);
-         pnlHand.setBorder(border);
-         for (int i = 0; i < NUM_CARDS_PER_HAND; i ++) {
-            pnlHand.add(JLables[i]);
-         }
-         GridLayout layout = new GridLayout(1, NUM_CARDS_PER_HAND);
-         pnlHand.setLayout(layout);
-         myCardTable.add(pnlHand);
-      }
-      
-      /**
-       * 
-       * @param myCardTable
-       * @param computerCard
-       * @param yourCard
-       * @return
-       */
-      private static void displayPlayingArea(JPanel pnlPlayArea, JPanel pnlPlayAreaPosition, CardTableView myCardTable, Card computerCard, Card yourCard ) {
-
-         //Play Computer Card
-         JLabel computerCardJLabel = null;
-         if (computerCard != null) {
-            Icon computerCardIcon = GUICardIconsView.getIcon(computerCard);
-            computerCardJLabel = new JLabel(computerCardIcon);
-            playedCardLabels[0] = computerCardJLabel;
-         }
-         JLabel computerLabel = new JLabel( "Computer", JLabel.CENTER );
-         playLabelText[0] = computerLabel;
-
-         //Play Your Card
-         JLabel yourCardJLabel = null;
-         if (yourCard != null) {
-            Icon yourCardIcon = GUICardIconsView.getIcon(yourCard);
-            yourCardJLabel = new JLabel(yourCardIcon);
-            playedCardLabels[1] = yourCardJLabel;
-         }
-         JLabel yourHandLabel = new JLabel( "You", JLabel.CENTER );
-         playLabelText[1] = yourHandLabel;
-
-         //Add labels to the play area
-         
-         if (computerCardJLabel != null) {
-            pnlPlayArea.add(computerCardJLabel);
-         }
-         if (yourCardJLabel != null) {
-            pnlPlayArea.add(yourCardJLabel);
-         }
-         
-         pnlPlayAreaPosition.add(computerLabel);
-         pnlPlayAreaPosition.add(yourHandLabel);
-
-         myCardTable.add(pnlPlayArea);
-         myCardTable.add(pnlPlayAreaPosition);
-      }
-      
-      /**
-       * 
-       * @param myCardTable
-       * @param hand
-       * @param JLabels
-       * @param isBackCard
-       */
-      private static void createHandJLabels(CardTableView myCardTable, Hand hand, Hand computerHand, JLabel[] JLabels,
-            boolean isBackCard, JPanel pnlPlayArea, JPanel pnlComputerArea, JPanel pnlYourHandArea, JPanel pnlPlayAreaPosition) {
-         for (int i = 0; i < NUM_CARDS_PER_HAND; i++) {
+        this.pnlComputerArea = new JPanel();
+        this.pnlYourHandArea = new JPanel();
+	}
+	
+	public boolean createComputerJLabels(int i, Hand hand) 
+	{
+		for (int j = 0; j < BuildModel.NUM_CARDS_PER_HAND; i++) {
+			Icon icon = null;
+			Card dealCard = hand.inspectCard(i);
+			icon = GUICardIconsView.getBackCardIcon();
+			JLabel jlabel = new JLabel(icon);
+            computerLabels[j] = jlabel;
+			
+		}
+		return true;
+	}
+	
+	public boolean createPlayerJLabels(int i, Hand hand) 
+	{
+		for (int j = 0; j < BuildModel.NUM_CARDS_PER_HAND; i++) {
+			Icon icon = null;
+			Card dealCard = hand.inspectCard(i);
+			icon = GUICardIconsView.getIcon(dealCard);
+			JLabel jlabel = new JLabel(icon);
+            humanLabels[j] = jlabel;
+			
+		}
+		return true;
+	}
+	/*public boolean createComputerJLabels(int i)
+	{
+		for (int i = 0; i < BuildModel.NUM_CARDS_PER_HAND; i++) {
             // Create an icon and store in an array later use.
             Icon icon = null;
-            HighCardListenerController highCardListener = null;
             Card dealCard = hand.inspectCard(i);
-            if (isBackCard) {
-               icon = GUICardIconsView.getBackCardIcon();
-            } else {
-               icon = GUICardIconsView.getIcon(dealCard);
-               highCardListener = new HighCardListenerController(myCardTable, dealCard, hand, computerHand, pnlPlayArea,
-                     pnlComputerArea, pnlYourHandArea, pnlPlayAreaPosition);
-            }
+            icon = GUICardIconsView.getBackCardIcon();
             JLabel jlabel = new JLabel(icon);
             if (highCardListener != null) {
                jlabel.addMouseListener(highCardListener);
             }
             JLabels[i] = jlabel;
          }
-      }
-      
-   }
+	}*/
+	
+	public void displayHumanHandArea()
+	{
+		Border border = new TitledBorder("Your Hand");
+		pnlYourHandArea.setBorder(border);
+		for (int i = 0; i < BuildModel.NUM_CARDS_PER_HAND; i++)
+		{
+			pnlYourHandArea.add(humanLabels[i]);
+		}
+		GridLayout layout = new GridLayout(1, BuildModel.NUM_CARDS_PER_HAND + 1);
+		pnlYourHandArea.setLayout(layout);
+		this.add(pnlYourHandArea);
+		this.add(skipButton);
+	}
+	
+	public void displayComputerHandArea()
+	{
+		Border border = new TitledBorder("Computer Hand");
+		pnlComputerArea.setBorder(border);
+		for (int i = 0; i < BuildModel.NUM_CARDS_PER_HAND; i++)
+		{
+			pnlComputerArea.add(computerLabels[i]);
+		}
+		GridLayout layout = new GridLayout(1, BuildModel.NUM_CARDS_PER_HAND);
+		pnlComputerArea.setLayout(layout);
+		this.add(pnlComputerArea);
+	}
+	
+	public void displayPlayArea(Card leftCard, Card rightCard)
+	{
+		//Play Left Card Label
+        JLabel leftCardLabel = null;
+        Icon leftCardIcon = GUICardIconsView.getIcon(leftCard);
+        leftCardLabel = new JLabel(leftCardIcon);
+        playedCardLabels[0] = leftCardLabel;
 
-   private static class CardTableView extends JFrame
-   {
-      static int MAX_CARDS_PER_HAND = 56;
-      static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games    
-      private int numCardsPerHand;
-      private int numPlayers;
-      public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
-      
-      public CardTableView(String title, int numCardsPerHand, int numPlayers)
-      {
-         if (numCardsPerHand > MAX_CARDS_PER_HAND) {
-            throw new IllegalArgumentException("Max number of cards per hand:" + MAX_CARDS_PER_HAND);
-         }
-         if (numPlayers > MAX_PLAYERS) {
-            throw new IllegalArgumentException("Max number of players are:" + MAX_PLAYERS);
-         }
-         this.numCardsPerHand = numCardsPerHand;
-         this.numPlayers = numPlayers;
-      }
-      
-      public int getNumCardsPerHand()
-      {
-         return numCardsPerHand;
-      }
-      
-      public int getNumPlayers()
-      {
-         return numPlayers;
-      }
-   }
-   
-   /**
-    * Controller part of Model-View-Controller Design Pattern
-    * 
-    * @author charlesk
-    *
-    */
-   private static class HighCardListenerController implements MouseListener {
-      private CardTableView myCardTable;
-      private Card card;
-      private Hand hand;
-      private Hand computerHand;
-      private JPanel pnlPlayArea;
-      private JPanel pnlComputerArea;
-      private JPanel pnlYourHandArea;
-      private JPanel pnlPlayAreaPosition;
-      
-      HighCardListenerController(CardTableView myCardTable, Card card, Hand hand, Hand computerHand, JPanel pnlPlayArea,
-            JPanel pnlComputerArea, JPanel pnlYourHandArea, JPanel pnlPlayAreaPosition) {
-         this.myCardTable = myCardTable;
-         this.card = card;
-         this.hand = hand;
-         this.computerHand = computerHand;
-         this.pnlPlayArea = pnlPlayArea;
-         this.pnlComputerArea = pnlComputerArea;
-         this.pnlYourHandArea = pnlYourHandArea;
-         this.pnlPlayAreaPosition = pnlPlayAreaPosition;
-      }
+        //Play Right Card Label
+        JLabel rightCardLabel = null;
+        Icon rightCardIcon = GUICardIconsView.getIcon(rightCard);
+        rightCardLabel = new JLabel(rightCardIcon);
+        playedCardLabels[0] = rightCardLabel;
 
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        pnlPlayAreaPosition.removeAll();
-          pnlPlayArea.removeAll();
-
-          // Play the card to the playing are when clicked.
-          //1) Add the card to the playing area
-          Icon icon = GUICardIconsView.getIcon(card);
-          JLabel iconYourHandJLabel = new JLabel(icon);
-          playedCardLabels[0] = iconYourHandJLabel;
-          
-          //2) remove the card from the hand and hand area.
-          for (int i = 0; i < hand.getNumCards(); i ++) {
-             Card card = hand.inspectCard(i);
-             if (card.getValue() == this.card.getValue() && card.getSuit() == this.card.getSuit()) {
-                hand.playCard(i);
-                break;
-             }
-          }
-          pnlYourHandArea.remove(e.getComponent());
-          pnlYourHandArea.revalidate();
-          
-          //3) Randomly pick and add the card from the computer hand and remove it from the hand as well.
-          int computerHandCards = this.computerHand.getNumCards() - 1;
-          Random r = new Random();
-          int cCard = r.nextInt((computerHandCards - 0) + 1);
-
-          Card computerCard = computerHand.playCard(cCard);
-          icon = GUICardIconsView.getIcon(computerCard);
-          JLabel iconComputerJLabel = new JLabel(icon);
-          playedCardLabels[1] = iconComputerJLabel;
-          pnlComputerArea.remove(cCard);
-          pnlComputerArea.revalidate();
-          
-          //Card labels
-          pnlPlayArea.add(iconComputerJLabel);
-          pnlPlayArea.add(iconYourHandJLabel);
-          //Text labels
-          JLabel computerLabel = new JLabel( "Computer", JLabel.CENTER );
-          JLabel yourHandLabel = new JLabel( "You", JLabel.CENTER );
-          pnlPlayAreaPosition.add(computerLabel);
-          pnlPlayAreaPosition.add(yourHandLabel);
-
-          //Refresh the JFrame
-          myCardTable.revalidate();
-
-          int yourCardValue = this.card.getValueAsInt();
-          int computerCardValue = computerCard.getValueAsInt();
-          String highCardResultMessage = "";
-          
-          //Determine who won
-          if (this.card.getValue() == 'A' && computerCard.getValue() != 'A') {
-             highCardResultMessage = "You Won with Ace!";
-          } else if (computerCard.getValue() == 'A' && this.card.getValue() != 'A') {
-             highCardResultMessage = "You Lost to an Ace!";
-          } else if (computerCard.getValue() == 'A' && this.card.getValue() == 'A') {
-             highCardResultMessage = "Draw with an Ace!";
-          }
-          else {
-             if (yourCardValue > computerCardValue) {
-                highCardResultMessage = "You Won!";
-             } else if (yourCardValue == computerCardValue) {
-                highCardResultMessage = "Draw!";
-             } else {
-                highCardResultMessage = "Sorry You Lost!";
-             }
-          }
-          JOptionPane.showMessageDialog(myCardTable, highCardResultMessage);
-
-          //Clean up the playing area
-          pnlPlayArea.removeAll();
-          myCardTable.revalidate();
-          myCardTable.repaint();
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-         // TODO Auto-generated method stub
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
         
-      }
 
-      @Override
-      public void mouseEntered(MouseEvent e) {
-         // TODO Auto-generated method stub
-      }
+        this.add(pnlPlayArea);
+	}
+	
+	private static class GUICardIconsView
+	   {
+	      public static final String IMAGE_FOLDER_NAME = "images";
+	      public static final String BACK_IMAGE_NAME = "BK.gif";
 
-      @Override
-      public void mouseExited(MouseEvent e) {
-         // TODO Auto-generated method stub
-      }
-   }
+	      public static final int MAX_ROW = 14;
+	      public static final int MAX_COLUMN = 4;
+	      
+	      // 14 = A thru K + joker
+	      //The 52 + 4 jokers Icons will be read and stored into the iconCards[][] array.
+	      private static Icon[][] iconCards = new ImageIcon[MAX_ROW][MAX_COLUMN];
+	      
+	      //The card-back image in the iconBack member
+	      private static Icon iconBack;
+	      
+	      static boolean iconsLoaded = false;
+	      
+	      //
+	      static {
+	         loadCardIcons();
+	      }
+	      
+	      /**
+	       *  Icons are loaded following rules
+	       *  C = Clover, D = Diamond, H = Hearts S = Spades
+	       *  
+	       *  [A,C],[A,D],[A,H],[A,S]
+	       *  [2,C],[2,D],[2,H],[2,S]
+	       *  [3,C],[3,D],[3,H],[3,S]
+	       *  ...
+	       *  [J,C],[J,D],[J,H],[J,S]
+	       *  ...
+	       *  [K,C],[K,D],[K,H],[K,S]
+	       */
+	      public static void loadCardIcons()
+	      {
+	         if (iconsLoaded ) {
+	            return;
+	         }
+	         //Load iconBack image
+	         iconBack= new ImageIcon(IMAGE_FOLDER_NAME + "/" +  BACK_IMAGE_NAME);
+	         
+	         //Load other icons(cards)
+	         for (int r = 0; r < MAX_ROW; r ++) {
+	            for (int c = 0; c < MAX_COLUMN; c ++) {
+	               iconCards[r][c] =  new ImageIcon(IMAGE_FOLDER_NAME + "/" +  getImageFileName(r, c));
+	            }
+	         }
+	 
+	         iconsLoaded = true;
+	      }
+	      
+	      private static String getImageFileName(int row, int column) {
+	         StringBuilder ret = new StringBuilder();
+	         switch(row) {
+	         case 0:
+	            ret.append('A');
+	            break;
+	         case 1:
+	            ret.append('2');
+	            break;
+	         case 2:
+	            ret.append('3');
+	            break;
+	         case 3:
+	            ret.append('4');
+	            break;
+	         case 4:
+	            ret.append('5');
+	            break;
+	         case 5:
+	            ret.append('6');
+	            break;
+	         case 6:
+	            ret.append('7');
+	            break;
+	         case 7:
+	            ret.append('8');
+	            break;
+	         case 8:
+	            ret.append('9');
+	            break;
+	         case 9:
+	            ret.append('T');
+	            break;
+	         case 10:
+	            ret.append('J');
+	            break;
+	         case 11:
+	            ret.append('Q');
+	            break;
+	         case 12:
+	            ret.append('K');
+	            break;
+	         case 13:
+	            ret.append('X');
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of row");
+	         }
+	         
+	         switch(column) {
+	         case 0:
+	            ret.append('S');
+	            break;
+	         case 1:
+	            ret.append('H');
+	            break;
+	         case 2:
+	            ret.append('D');
+	            break;
+	         case 3:
+	            ret.append('C');
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of column");
+	         }
+	         
+	         ret.append(".gif");
+	         return ret.toString();
+	      }
+	      /**
+	       * 
+	       * @param card
+	       * @return the Icon for that card
+	       */
+	      public static Icon getIcon(Card card)
+	      {
+	         return iconCards[valueAsInt(card)][suitAsInt(card)];
+	      }
+	      
+	      /**
+	       * 
+	       * @param card
+	       * @return
+	       */
+	      private static int valueAsInt(Card card) {
+	         int ret = 0;
+	         char valueChar = card.getValue();
+	         switch(valueChar) {
+	         case 'A':
+	            ret = 0;
+	            break;
+	         case '2':
+	            ret = 1;
+	            break;
+	         case '3':
+	            ret = 2;
+	            break;
+	         case '4':
+	            ret = 3;
+	            break;
+	         case '5':
+	            ret = 4;
+	            break;
+	         case '6':
+	            ret = 5;
+	            break;
+	         case '7':
+	            ret = 6;
+	            break;
+	         case '8':
+	            ret = 7;
+	            break;
+	         case '9':
+	            ret = 8;
+	            break;
+	         case 'T':
+	            ret = 9;
+	            break;
+	         case 'J':
+	            ret = 10;
+	            break;
+	         case 'Q':
+	            ret = 11;
+	            break;
+	         case 'K':
+	            ret = 12;
+	            break;
+	         case 'X':
+	            ret = 13;
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of card value.");
+	      }
+	         return ret;
+	      }
+	      
+	      /**
+	       * 
+	       * @param card
+	       * @return
+	       */
+	      private static int suitAsInt(Card card) {
+	         int ret = 0;
+	         Card.Suit suit = card.getSuit();
+	         switch(suit) {
+	         case spades:
+	            ret = 0;
+	            break;
+	         case hearts:
+	            ret = 1;
+	            break;
+	         case diamonds:
+	            ret = 2;
+	            break;
+	         case clubs:
+	            ret = 3;
+	            break;
+	         default:
+	            throw new IllegalArgumentException("Illegal value of card suit.");
+	         }
+	         return ret;
+	      }
+	      
+	      /**
+	       * 
+	       * @return back card icon
+	       */
+	      public static Icon getBackCardIcon()
+	      {
+	         return iconBack;
+	      }
+	   }
+	
+}
+
+class BuildController
+{
+	private BuildModel buildModel;
+	private BuildView buildView;
+	private Card cardFromHand;
+	private Card cardInMiddleLeft;
+	private Card cardInMiddleRight;
+	private Card cardFromComputer;
+	private int computuerFailed;
+	private int userFailed;
+	
+	public BuildController(BuildView buildView, BuildModel buildModel)
+	{
+		this.buildModel = buildModel;
+		this.buildView = buildView;
+	}	
+	
+	class PlayerCardSelected implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			
+		}
+	}
+}
    /**
     *  It will read the image files and store them in a static Icon array. 
     *  Rather than a 1-D array of Phase 1, this will be a 2-D array to facilitate addressing the value and suit of a Card in order get its Icon.
@@ -445,231 +757,8 @@ public class AssignmentSix
     * @author charlesk
     *
     */
-   private static class GUICardIconsView
-   {
-      public static final String IMAGE_FOLDER_NAME = "images";
-      public static final String BACK_IMAGE_NAME = "BK.gif";
+   
 
-      public static final int MAX_ROW = 14;
-      public static final int MAX_COLUMN = 4;
-      
-      // 14 = A thru K + joker
-      //The 52 + 4 jokers Icons will be read and stored into the iconCards[][] array.
-      private static Icon[][] iconCards = new ImageIcon[MAX_ROW][MAX_COLUMN];
-      
-      //The card-back image in the iconBack member
-      private static Icon iconBack;
-      
-      static boolean iconsLoaded = false;
-      
-      //
-      static {
-         loadCardIcons();
-      }
-      
-      /**
-       *  Icons are loaded following rules
-       *  C = Clover, D = Diamond, H = Hearts S = Spades
-       *  
-       *  [A,C],[A,D],[A,H],[A,S]
-       *  [2,C],[2,D],[2,H],[2,S]
-       *  [3,C],[3,D],[3,H],[3,S]
-       *  ...
-       *  [J,C],[J,D],[J,H],[J,S]
-       *  ...
-       *  [K,C],[K,D],[K,H],[K,S]
-       */
-      public static void loadCardIcons()
-      {
-         if (iconsLoaded ) {
-            return;
-         }
-         //Load iconBack image
-         iconBack= new ImageIcon(IMAGE_FOLDER_NAME + "/" +  BACK_IMAGE_NAME);
-         
-         //Load other icons(cards)
-         for (int r = 0; r < MAX_ROW; r ++) {
-            for (int c = 0; c < MAX_COLUMN; c ++) {
-               iconCards[r][c] =  new ImageIcon(IMAGE_FOLDER_NAME + "/" +  getImageFileName(r, c));
-            }
-         }
- 
-         iconsLoaded = true;
-      }
-      
-      private static String getImageFileName(int row, int column) {
-         StringBuilder ret = new StringBuilder();
-         switch(row) {
-         case 0:
-            ret.append('A');
-            break;
-         case 1:
-            ret.append('2');
-            break;
-         case 2:
-            ret.append('3');
-            break;
-         case 3:
-            ret.append('4');
-            break;
-         case 4:
-            ret.append('5');
-            break;
-         case 5:
-            ret.append('6');
-            break;
-         case 6:
-            ret.append('7');
-            break;
-         case 7:
-            ret.append('8');
-            break;
-         case 8:
-            ret.append('9');
-            break;
-         case 9:
-            ret.append('T');
-            break;
-         case 10:
-            ret.append('J');
-            break;
-         case 11:
-            ret.append('Q');
-            break;
-         case 12:
-            ret.append('K');
-            break;
-         case 13:
-            ret.append('X');
-            break;
-         default:
-            throw new IllegalArgumentException("Illegal value of row");
-         }
-         
-         switch(column) {
-         case 0:
-            ret.append('S');
-            break;
-         case 1:
-            ret.append('H');
-            break;
-         case 2:
-            ret.append('D');
-            break;
-         case 3:
-            ret.append('C');
-            break;
-         default:
-            throw new IllegalArgumentException("Illegal value of column");
-         }
-         
-         ret.append(".gif");
-         return ret.toString();
-      }
-      /**
-       * 
-       * @param card
-       * @return the Icon for that card
-       */
-      public static Icon getIcon(Card card)
-      {
-         return iconCards[valueAsInt(card)][suitAsInt(card)];
-      }
-      
-      /**
-       * 
-       * @param card
-       * @return
-       */
-      private static int valueAsInt(Card card) {
-         int ret = 0;
-         char valueChar = card.getValue();
-         switch(valueChar) {
-         case 'A':
-            ret = 0;
-            break;
-         case '2':
-            ret = 1;
-            break;
-         case '3':
-            ret = 2;
-            break;
-         case '4':
-            ret = 3;
-            break;
-         case '5':
-            ret = 4;
-            break;
-         case '6':
-            ret = 5;
-            break;
-         case '7':
-            ret = 6;
-            break;
-         case '8':
-            ret = 7;
-            break;
-         case '9':
-            ret = 8;
-            break;
-         case 'T':
-            ret = 9;
-            break;
-         case 'J':
-            ret = 10;
-            break;
-         case 'Q':
-            ret = 11;
-            break;
-         case 'K':
-            ret = 12;
-            break;
-         case 'X':
-            ret = 13;
-            break;
-         default:
-            throw new IllegalArgumentException("Illegal value of card value.");
-      }
-         return ret;
-      }
-      
-      /**
-       * 
-       * @param card
-       * @return
-       */
-      private static int suitAsInt(Card card) {
-         int ret = 0;
-         Card.Suit suit = card.getSuit();
-         switch(suit) {
-         case spades:
-            ret = 0;
-            break;
-         case hearts:
-            ret = 1;
-            break;
-         case diamonds:
-            ret = 2;
-            break;
-         case clubs:
-            ret = 3;
-            break;
-         default:
-            throw new IllegalArgumentException("Illegal value of card suit.");
-         }
-         return ret;
-      }
-      
-      /**
-       * 
-       * @return back card icon
-       */
-      public static Icon getBackCardIcon()
-      {
-         return iconBack;
-      }
-   }
-}
 
 class CardGameFramework
 {
@@ -919,7 +1008,8 @@ class Card
     * Returns a string representation of a Card object if valid
     * otherwise returns an error message
     */
-   public String toString()
+   @Override
+public String toString()
    {
       String message;
 
@@ -1502,7 +1592,8 @@ class Timer extends Thread
    }
    
    
-   public void destroy() {
+   @Override
+public void destroy() {
       isAlive = false;
    }
    
